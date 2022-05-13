@@ -157,5 +157,5 @@ func ApplyConsensusVersion(ver ConsensusVerson, cfg *ConsensusConf) {
 }
 
 func GetDefaultConsensusConfig() *ConsensusConf {
-	return &v6
+	return &v9
 }
