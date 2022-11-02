@@ -108,7 +108,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/huin/goupnp v1.0.3 // indirect
-	github.com/idena-network/idena-wasm-binding v0.0.0-20221010093137-d566ac6db3aa // indirect
+	github.com/idena-network/idena-wasm-binding v0.0.0-20221101070452-a20fafdd4d76 // indirect
 	github.com/ipfs/bbloom v0.0.4 // indirect
 	github.com/ipfs/go-bitfield v1.0.0 // indirect
 	github.com/ipfs/go-bitswap v0.9.0 // indirect
@@ -278,7 +278,5 @@ require (
 replace github.com/cosmos/iavl => github.com/idena-network/iavl v0.12.3-0.20211223100228-a33b117aa31e
 
 replace github.com/libp2p/go-libp2p-pnet => github.com/idena-network/go-libp2p-pnet v0.2.1-0.20200406075059-75d9ee9b85ed
-
-replace github.com/idena-network/idena-wasm-binding => ..\idena-wasm-binding
 
 go 1.17
