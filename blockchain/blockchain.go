@@ -1934,7 +1934,17 @@ func (chain *Blockchain) filterTxs(appState *appstate.AppState, txs []*types.Tra
 	var receipts []*types.TxReceipt
 	var usedGas uint64
 	for _, tx := range txs {
+		if chain.repo.IsInBlackList(tx.Hash()) {
+			continue
+		}
+		if chain.repo.HasApplyingTxLog(tx.Hash()) {
+			chain.repo.AddToBlackList(tx.Hash())
+			chain.repo.FinishApplyingTx(tx.Hash())
+			continue
+		}
+		chain.repo.StartApplyingTx(tx.Hash())
 		if err := validation.ValidateTx(appState, tx, minFeePerGas, validation.InBlockTx); err != nil {
+			chain.repo.FinishApplyingTx(tx.Hash())
 			continue
 		}
 		context := &txExecutionContext{appState: appState, vm: vm, height: header.Height}
@@ -1945,6 +1955,7 @@ func (chain *Blockchain) filterTxs(appState *appstate.AppState, txs []*types.Tra
 				gas += r.GasUsed
 			}
 			if usedGas+gas > types.MaxBlockSize(chain.config.Consensus.EnableUpgrade10) {
+				chain.repo.FinishApplyingTx(tx.Hash())
 				break
 			}
 			usedGas += gas
@@ -1952,6 +1963,7 @@ func (chain *Blockchain) filterTxs(appState *appstate.AppState, txs []*types.Tra
 			totalTips.Add(totalTips, tx.TipsOrZero())
 			result = append(result, tx)
 		}
+		chain.repo.FinishApplyingTx(tx.Hash())
 	}
 	return result, totalFee, totalTips, receipts, usedGas
 }
