@@ -1160,13 +1160,8 @@ func Test_setNewIdentitiesAttributes(t *testing.T) {
 
 	s.Reset()
 
-	s.State.SetDelegatee(common.Address{0x1}, common.Address{0x1, 0x1})
-	s.State.SetPendingUndelegation(common.Address{0x1})
-	s.State.SetDelegationEpoch(common.Address{0x1}, 1)
-
-	s.State.SetDelegatee(common.Address{0x2}, common.Address{0x1, 0x1})
-	s.State.SetPendingUndelegation(common.Address{0x2})
-	s.State.SetDelegationEpoch(common.Address{0x2}, 2)
+	s.State.SetUndelegationEpoch(common.Address{0x1}, 1)
+	s.State.SetUndelegationEpoch(common.Address{0x2}, 2)
 
 	inactiveGodAddress := s.State.GodAddress()
 	s.State.AddStake(inactiveGodAddress, big.NewInt(1))
@@ -1205,8 +1200,18 @@ func Test_setNewIdentitiesAttributes(t *testing.T) {
 
 	require.Nil(s.State.Delegatee(common.Address{0x1}))
 	require.Nil(s.State.PendingUndelegation(common.Address{0x1}))
+	identity := s.State.GetIdentity(common.Address{0x1})
+	require.Zero(identity.DelegationEpoch)
+	require.Zero(identity.UndelegationEpoch())
+	require.False(identity.IsDiscriminated(s.State.Epoch()))
+
 	require.Nil(s.State.Delegatee(common.Address{0x2}))
-	require.Equal(common.Address{0x1, 0x1}, *s.State.PendingUndelegation(common.Address{0x2}))
+	require.Nil(s.State.PendingUndelegation(common.Address{0x2}))
+	identity = s.State.GetIdentity(common.Address{0x2})
+	require.Zero(identity.DelegationEpoch)
+	require.Equal(uint16(2), identity.UndelegationEpoch())
+	require.True(identity.IsDiscriminated(s.State.Epoch()))
+
 	require.Nil(s.State.PendingUndelegation(common.Address{0x3}))
 	require.Nil(s.State.PendingUndelegation(common.Address{0xe}))
 
@@ -1623,7 +1628,7 @@ func Test_applyDelegationSwitch(t *testing.T) {
 	chain := &Blockchain{}
 
 	chain.config = &config.Config{
-		Consensus: &config.ConsensusConf{},
+		Consensus: GetDefaultConsensusConfig(),
 	}
 
 	block := &types.Block{
@@ -1698,7 +1703,7 @@ func Test_applyDelegationSwitch(t *testing.T) {
 	require.Nil(t, appState.CommitAt(1))
 	require.Nil(t, appState.Initialize(1))
 
-	undelegations := chain.applyDelegationSwitch(appState, block)
+	undelegations := chain.applyDelegationSwitch(appState, block, nil)
 	appState.Precommit()
 	require.Nil(t, appState.CommitAt(2))
 	require.Nil(t, appState.Initialize(2))
